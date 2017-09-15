@@ -11,9 +11,10 @@ public class buttonHandler : MonoBehaviour {
     public Button Button;
     public Image[] Images;
     public int i;
-    public List<int> current_ids;
+    public List<List<int>> current_ids;
     public bool isStarted;
     public string gameDataFileName = "melody.json";
+    public List<Color> colorList;
     public JsonData jsonString;
     public int id_song;
 
@@ -28,7 +29,9 @@ public class buttonHandler : MonoBehaviour {
     public void reset()
     {
         // current key
-        current_ids = new List<int>();
+        current_ids = new List<List<int>>();
+        // list of colors
+        colorList = new List<Color>() { Color.red, Color.yellow, Color.green, Color.blue, Color.magenta};
         // FIXME: get id_song from Menu, default is 0
         id_song = 0;
         // read musical script
@@ -59,19 +62,23 @@ public class buttonHandler : MonoBehaviour {
         }
     }
 
-    public List<int> activateKey(int time)
+    public List<List<int>> activateKey(int time)
     {
         // musical script -> which key is activated based on time (ticks)
         int n_time = jsonString["songs"][id_song]["duration"].Count;
-        List<int> id_keys = new List<int>();
+        List<List<int>> id_keys = new List<List<int>>();
         for (int i = 0; i < n_time; i++)
         {
             int the_time;
             Int32.TryParse(jsonString["songs"][id_song]["duration"][i][0].ToString(), out the_time);
             int id_key;
             Int32.TryParse(jsonString["songs"][id_song]["duration"][i][1].ToString(), out id_key);
+            int id_color;
+            Int32.TryParse(jsonString["songs"][id_song]["duration"][i][2].ToString(), out id_color);
             if (time == the_time)
-                id_keys.Add(id_key);
+            {
+                id_keys.Add(new List<int>() { id_key, id_color});
+            }
         }
         if (id_keys.Count > 0)
             return id_keys;
@@ -89,11 +96,12 @@ public class buttonHandler : MonoBehaviour {
                 foreach (var image in this.Images)
                 {
                     var imageComponent = image.GetComponent<Image>();
-                    foreach (int current_id in current_ids)
+                    foreach (List<int> current_id in current_ids)
                     {
-                        if (imageComponent.name.Equals("Image" + current_id))
+                        if (imageComponent.name.Equals("Image" + current_id[0]))
                         {
                             imageComponent.gameObject.SetActive(true);
+                            imageComponent.color = colorList[current_id[1] - 1];
                             break;
                         }
                         else
